@@ -100,9 +100,11 @@ class _BootstrapAppState extends State<BootstrapApp> {
           darkTheme: AppTheme.darkTheme,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: snapshot.hasError
-              ? _BootstrapErrorScreen(onRetry: _retryStartup)
-              : const _BootstrapLoadingScreen(),
+          onGenerateRoute: (_) => MaterialPageRoute(
+            builder: (_) => snapshot.hasError
+                ? _BootstrapErrorScreen(onRetry: _retryStartup)
+                : const _BootstrapLoadingScreen(),
+          ),
         );
       },
     );
@@ -289,8 +291,40 @@ class _BootstrapErrorScreen extends StatelessWidget {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
+  static bool _isLoginRoute([String? routeName]) {
+    final cleanName = (routeName ?? '').trim().toLowerCase();
+    if (cleanName == '/login' ||
+        cleanName == '/login/' ||
+        cleanName == 'login' ||
+        cleanName.endsWith('/login')) {
+      return true;
+    }
+
+    final uri = Uri.base;
+    final path = uri.path.trim().toLowerCase();
+    if (path == '/login' ||
+        path == '/login/' ||
+        path == 'login' ||
+        path.endsWith('/login')) {
+      return true;
+    }
+
+    final fragment = uri.fragment.trim().toLowerCase();
+    if (fragment == '/login' ||
+        fragment == '/login/' ||
+        fragment == 'login' ||
+        fragment == '#/login' ||
+        fragment.endsWith('/login')) {
+      return true;
+    }
+
+    return false;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isLogin = _isLoginRoute();
+
     return MultiBlocProvider(
       providers: [
         BlocProvider<ThemeCubit>(
@@ -321,6 +355,7 @@ class MyApp extends StatelessWidget {
             locale: themeState.locale,
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
+            initialRoute: isLogin ? '/login' : '/',
             builder: (context, child) {
               return Directionality(
                 textDirection: themeState.isArabic
@@ -337,7 +372,7 @@ class MyApp extends StatelessWidget {
   }
 
   Route<dynamic> _generateRoute(RouteSettings settings) {
-    if (settings.name == '/login') {
+    if (_isLoginRoute(settings.name)) {
       return MaterialPageRoute(
         settings: settings,
         builder: (_) => BlocProvider<AdminAuthCubit>(
