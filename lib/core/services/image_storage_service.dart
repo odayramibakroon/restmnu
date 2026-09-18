@@ -44,6 +44,7 @@ class SupabaseImageStorageServiceImpl implements ImageStorageService {
             path,
             uploadBytes,
             fileOptions: const FileOptions(
+              cacheControl: '31536000',
               contentType: 'image/jpeg',
               upsert: false,
             ),

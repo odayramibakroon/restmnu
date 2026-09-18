@@ -56,17 +56,58 @@ class _MenuItemDetailsDialogState extends State<MenuItemDetailsDialog> {
   double _quantity = 1;
   String? _selectedSize;
   late final TextEditingController _weightController;
+  late final FocusNode _weightFocusNode;
+  final _scrollController = ScrollController();
+  final _weightFieldKey = GlobalKey();
 
   @override
   void initState() {
     super.initState();
     _weightController = TextEditingController(text: '1');
+    _weightFocusNode = FocusNode()..addListener(_handleWeightFocusChange);
   }
 
   @override
   void dispose() {
+    _weightFocusNode.removeListener(_handleWeightFocusChange);
+    _weightFocusNode.dispose();
     _weightController.dispose();
+    _scrollController.dispose();
     super.dispose();
+  }
+
+  void _handleWeightFocusChange() {
+    if (_weightFocusNode.hasFocus) {
+      _ensureWeightInputVisible();
+    }
+  }
+
+  void _ensureWeightInputVisible() {
+    Future<void>.delayed(const Duration(milliseconds: 80), () {
+      if (!mounted || !_weightFocusNode.hasFocus) return;
+      final context = _weightFieldKey.currentContext;
+      if (context == null) return;
+      if (!context.mounted) return;
+      Scrollable.ensureVisible(
+        context,
+        duration: const Duration(milliseconds: 260),
+        curve: Curves.easeOutCubic,
+        alignment: 0.42,
+      );
+    });
+
+    Future<void>.delayed(const Duration(milliseconds: 320), () {
+      if (!mounted || !_weightFocusNode.hasFocus) return;
+      final context = _weightFieldKey.currentContext;
+      if (context == null) return;
+      if (!context.mounted) return;
+      Scrollable.ensureVisible(
+        context,
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOutCubic,
+        alignment: 0.42,
+      );
+    });
   }
 
   void _increment() {
@@ -154,7 +195,12 @@ class _MenuItemDetailsDialogState extends State<MenuItemDetailsDialog> {
 
             Flexible(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.only(bottom: AppDimensions.space12),
+                controller: _scrollController,
+                keyboardDismissBehavior:
+                    ScrollViewKeyboardDismissBehavior.onDrag,
+                padding: EdgeInsets.only(
+                  bottom: bottomInset > 0 ? 120 : AppDimensions.space12,
+                ),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: AppDimensions.space20,
@@ -294,7 +340,13 @@ class _MenuItemDetailsDialogState extends State<MenuItemDetailsDialog> {
                                 ?.copyWith(fontWeight: FontWeight.bold),
                           ),
                           widget.item.isSoldByWeight
-                              ? _buildWeightQuantityControl(isDark, l10n)
+                              ? KeyedSubtree(
+                                  key: _weightFieldKey,
+                                  child: _buildWeightQuantityControl(
+                                    isDark,
+                                    l10n,
+                                  ),
+                                )
                               : Container(
                                   decoration: BoxDecoration(
                                     color: isDark
@@ -440,9 +492,11 @@ class _MenuItemDetailsDialogState extends State<MenuItemDetailsDialog> {
           Expanded(
             child: TextField(
               controller: _weightController,
+              focusNode: _weightFocusNode,
               keyboardType: const TextInputType.numberWithOptions(
                 decimal: true,
               ),
+              scrollPadding: const EdgeInsets.only(bottom: 160),
               inputFormatters: [
                 FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
               ],
@@ -453,6 +507,7 @@ class _MenuItemDetailsDialogState extends State<MenuItemDetailsDialog> {
                 suffixText: l10n.kiloShort,
                 contentPadding: const EdgeInsets.symmetric(vertical: 10),
               ),
+              onTap: _ensureWeightInputVisible,
               onChanged: (_) => setState(() {}),
             ),
           ),

@@ -240,7 +240,7 @@ class _CartItemTileState extends State<CartItemTile> {
 
   Widget _buildWeightQuantityControl(bool isDark) {
     return Container(
-      width: 124,
+      width: 156,
       height: 36,
       decoration: BoxDecoration(
         color: isDark ? AppColors.surfaceDark : AppColors.backgroundLight,
@@ -249,24 +249,55 @@ class _CartItemTileState extends State<CartItemTile> {
           color: isDark ? AppColors.borderDark : AppColors.borderLight,
         ),
       ),
-      child: TextField(
-        controller: _quantityController,
-        focusNode: _quantityFocusNode,
-        keyboardType: const TextInputType.numberWithOptions(decimal: true),
-        inputFormatters: [
-          FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
-        ],
-        textDirection: TextDirection.ltr,
-        textAlign: TextAlign.center,
-        decoration: InputDecoration(
-          border: InputBorder.none,
-          suffixText: AppLocalizations.of(context)!.kiloShort,
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 10,
-            vertical: 8,
+      child: Row(
+        children: [
+          InkWell(
+            onTap: widget.onDecrease,
+            borderRadius: BorderRadius.circular(AppDimensions.radiusFull),
+            child: const SizedBox(
+              width: 32,
+              height: 36,
+              child: Icon(
+                Icons.remove_rounded,
+                size: 16,
+                color: AppColors.primary,
+              ),
+            ),
           ),
-        ),
-        onSubmitted: (_) => _commitQuantity(),
+          Expanded(
+            child: TextField(
+              controller: _quantityController,
+              focusNode: _quantityFocusNode,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
+              ],
+              textDirection: TextDirection.ltr,
+              textAlign: TextAlign.center,
+              decoration: InputDecoration(
+                border: InputBorder.none,
+                suffixText: AppLocalizations.of(context)!.kiloShort,
+                contentPadding: const EdgeInsets.symmetric(vertical: 8),
+              ),
+              onSubmitted: (_) => _commitQuantity(),
+            ),
+          ),
+          InkWell(
+            onTap: widget.onIncrease,
+            borderRadius: BorderRadius.circular(AppDimensions.radiusFull),
+            child: const SizedBox(
+              width: 32,
+              height: 36,
+              child: Icon(
+                Icons.add_rounded,
+                size: 16,
+                color: AppColors.primary,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

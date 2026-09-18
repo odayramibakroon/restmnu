@@ -83,7 +83,7 @@ class CartCubit extends Cubit<CartState> {
     if (isClosed) return;
     final updatedList = state.items.map((ci) {
       if (ci.key == cartItemKey) {
-        final step = ci.item.isSoldByWeight ? 0.1 : 1.0;
+        const step = 1.0;
         return ci.copyWith(
           quantity: _normalizeQuantity(ci.item, ci.quantity + step),
         );
@@ -100,7 +100,7 @@ class CartCubit extends Cubit<CartState> {
 
     for (final ci in state.items) {
       if (ci.key == cartItemKey) {
-        final step = ci.item.isSoldByWeight ? 0.1 : 1.0;
+        const step = 1.0;
         if (ci.quantity > step) {
           updatedList.add(
             ci.copyWith(

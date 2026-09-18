@@ -145,9 +145,9 @@ class _BootstrapLoadingScreenState extends State<_BootstrapLoadingScreen>
       body: Center(
         child: LayoutBuilder(
           builder: (context, constraints) {
-            final logoWidth = constraints.maxWidth > 980
-                ? 980.0
-                : constraints.maxWidth * 0.88;
+            final logoWidth = constraints.maxWidth > 220
+                ? 220.0
+                : constraints.maxWidth * 0.34;
 
             return SizedBox(
               width: logoWidth,
@@ -214,10 +214,7 @@ class _OrbOrbitRing extends StatelessWidget {
           child: DecoratedBox(
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              border: Border.all(
-                color: const Color(0x40FFFFFF),
-                width: 2,
-              ),
+              border: Border.all(color: const Color(0x40FFFFFF), width: 2),
               boxShadow: const [
                 BoxShadow(
                   color: Color(0x334FC3FF),
@@ -270,7 +267,7 @@ class _BootstrapErrorScreen extends StatelessWidget {
               const Icon(Icons.error_outline_rounded, size: 54),
               const SizedBox(height: 16),
               Text(
-                l10n.startupFailed,
+                l10n.startupFailed ,
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.titleMedium,
               ),
@@ -291,39 +288,23 @@ class _BootstrapErrorScreen extends StatelessWidget {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  static bool _isLoginRoute([String? routeName]) {
-    final cleanName = (routeName ?? '').trim().toLowerCase();
-    if (cleanName == '/login' ||
-        cleanName == '/login/' ||
-        cleanName == 'login' ||
-        cleanName.endsWith('/login')) {
-      return true;
-    }
+  static bool _isLoginValue(String? value) {
+    final cleanValue = (value ?? '').trim().toLowerCase();
+    return cleanValue == '/login' ||
+        cleanValue == '/login/' ||
+        cleanValue == 'login' ||
+        cleanValue == '#/login' ||
+        cleanValue.endsWith('/login');
+  }
 
+  static bool _isLoginLocation() {
     final uri = Uri.base;
-    final path = uri.path.trim().toLowerCase();
-    if (path == '/login' ||
-        path == '/login/' ||
-        path == 'login' ||
-        path.endsWith('/login')) {
-      return true;
-    }
-
-    final fragment = uri.fragment.trim().toLowerCase();
-    if (fragment == '/login' ||
-        fragment == '/login/' ||
-        fragment == 'login' ||
-        fragment == '#/login' ||
-        fragment.endsWith('/login')) {
-      return true;
-    }
-
-    return false;
+    return _isLoginValue(uri.path) || _isLoginValue(uri.fragment);
   }
 
   @override
   Widget build(BuildContext context) {
-    final isLogin = _isLoginRoute();
+    final isLogin = _isLoginLocation();
 
     return MultiBlocProvider(
       providers: [
@@ -356,6 +337,9 @@ class MyApp extends StatelessWidget {
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             initialRoute: isLogin ? '/login' : '/',
+            onGenerateInitialRoutes: (_) => [
+              _generateRoute(RouteSettings(name: isLogin ? '/login' : '/')),
+            ],
             builder: (context, child) {
               return Directionality(
                 textDirection: themeState.isArabic
@@ -372,7 +356,7 @@ class MyApp extends StatelessWidget {
   }
 
   Route<dynamic> _generateRoute(RouteSettings settings) {
-    if (_isLoginRoute(settings.name)) {
+    if (_isLoginValue(settings.name)) {
       return MaterialPageRoute(
         settings: settings,
         builder: (_) => BlocProvider<AdminAuthCubit>(

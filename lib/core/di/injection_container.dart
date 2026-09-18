@@ -29,47 +29,57 @@ import '../../features/admin/presentation/cubit/admin_dashboard_cubit.dart';
 final sl = GetIt.instance;
 
 Future<void> initDependencies() async {
-  final sharedPreferences = await SharedPreferences.getInstance();
+  final sharedPreferences = sl.isRegistered<SharedPreferences>()
+      ? sl<SharedPreferences>()
+      : await SharedPreferences.getInstance();
 
   // External
-  sl.registerLazySingleton<FirebaseFirestore>(() => FirebaseFirestore.instance);
-  sl.registerLazySingleton<FirebaseAuth>(() => FirebaseAuth.instance);
-  sl.registerLazySingleton<SharedPreferences>(() => sharedPreferences);
+  _registerLazySingletonIfAbsent<FirebaseFirestore>(
+    () => FirebaseFirestore.instance,
+  );
+  _registerLazySingletonIfAbsent<FirebaseAuth>(() => FirebaseAuth.instance);
+  _registerLazySingletonIfAbsent<SharedPreferences>(() => sharedPreferences);
 
   // Core Services
-  sl.registerLazySingleton<LocationService>(() => LocationServiceImpl());
-  sl.registerLazySingleton<WhatsAppService>(() => WhatsAppServiceImpl());
-  sl.registerLazySingleton<UrlLauncherService>(() => UrlLauncherServiceImpl());
-  sl.registerLazySingleton<LocalStorageService>(
+  _registerLazySingletonIfAbsent<LocationService>(() => LocationServiceImpl());
+  _registerLazySingletonIfAbsent<WhatsAppService>(() => WhatsAppServiceImpl());
+  _registerLazySingletonIfAbsent<UrlLauncherService>(
+    () => UrlLauncherServiceImpl(),
+  );
+  _registerLazySingletonIfAbsent<LocalStorageService>(
     () => SharedPreferencesLocalStorageService(sl()),
   );
-  sl.registerLazySingleton<ImageStorageService>(
+  _registerLazySingletonIfAbsent<ImageStorageService>(
     () => SupabaseImageStorageServiceImpl(),
   );
 
   // Restaurant Feature
-  sl.registerLazySingleton<RestaurantRemoteDataSource>(
+  _registerLazySingletonIfAbsent<RestaurantRemoteDataSource>(
     () => RestaurantRemoteDataSourceImpl(firestore: sl()),
   );
-  sl.registerLazySingleton<RestaurantRepository>(
+  _registerLazySingletonIfAbsent<RestaurantRepository>(
     () => RestaurantRepositoryImpl(remoteDataSource: sl()),
   );
-  sl.registerFactory<RestaurantCubit>(() => RestaurantCubit(repository: sl()));
+  _registerFactoryIfAbsent<RestaurantCubit>(
+    () => RestaurantCubit(repository: sl()),
+  );
 
   // Menu Feature
-  sl.registerLazySingleton<MenuRemoteDataSource>(
+  _registerLazySingletonIfAbsent<MenuRemoteDataSource>(
     () => MenuRemoteDataSourceImpl(firestore: sl()),
   );
-  sl.registerLazySingleton<MenuRepository>(
+  _registerLazySingletonIfAbsent<MenuRepository>(
     () => MenuRepositoryImpl(remoteDataSource: sl()),
   );
-  sl.registerFactory<MenuCubit>(() => MenuCubit(repository: sl()));
+  _registerFactoryIfAbsent<MenuCubit>(() => MenuCubit(repository: sl()));
 
   // Cart Feature
-  sl.registerLazySingleton<CartCubit>(() => CartCubit(localStorage: sl()));
+  _registerLazySingletonIfAbsent<CartCubit>(
+    () => CartCubit(localStorage: sl()),
+  );
 
   // Checkout Feature
-  sl.registerFactory<CheckoutCubit>(
+  _registerFactoryIfAbsent<CheckoutCubit>(
     () => CheckoutCubit(
       locationService: sl(),
       whatsAppService: sl(),
@@ -78,15 +88,31 @@ Future<void> initDependencies() async {
   );
 
   // Theme Cubit
-  sl.registerLazySingleton<ThemeCubit>(() => ThemeCubit(localStorage: sl()));
+  _registerLazySingletonIfAbsent<ThemeCubit>(
+    () => ThemeCubit(localStorage: sl()),
+  );
 
   // Admin Feature
-  sl.registerLazySingleton<AdminRepository>(
+  _registerLazySingletonIfAbsent<AdminRepository>(
     () =>
         AdminRepository(auth: sl(), firestore: sl(), imageStorageService: sl()),
   );
-  sl.registerFactory<AdminAuthCubit>(() => AdminAuthCubit(repository: sl()));
-  sl.registerFactory<AdminDashboardCubit>(
+  _registerFactoryIfAbsent<AdminAuthCubit>(
+    () => AdminAuthCubit(repository: sl()),
+  );
+  _registerFactoryIfAbsent<AdminDashboardCubit>(
     () => AdminDashboardCubit(repository: sl()),
   );
+}
+
+void _registerLazySingletonIfAbsent<T extends Object>(T Function() factory) {
+  if (!sl.isRegistered<T>()) {
+    sl.registerLazySingleton<T>(factory);
+  }
+}
+
+void _registerFactoryIfAbsent<T extends Object>(T Function() factory) {
+  if (!sl.isRegistered<T>()) {
+    sl.registerFactory<T>(factory);
+  }
 }
