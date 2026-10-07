@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>إعلان موقع المطعم — ORB</title>
+<style>
+@font-face{font-family:AdCairo;src:url('./Cairo.ttf') format('truetype');font-weight:100 1000;font-display:block}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#fff}body{display:grid;place-items:center}canvas{width:min(100vw,56.25vh);height:auto;aspect-ratio:9/16;display:block;background:white}
+</style>
+</head>
+<body><canvas id="ad" width="1080" height="1920"></canvas>
+<script>
+(() => {
+'use strict';
+const canvas=document.getElementById('ad'),ctx=canvas.getContext('2d',{alpha:false});
+const W=1080,H=1920,O='#FF7400',K='#111114',WHITE='#FFFFFF';
+const assets={},assetErrors=[];
+const files={menu:'screenshots/menu-ar.png',cart:'screenshots/cart.png',checkout:'screenshots/checkout.png',checkoutSend:'screenshots/checkout-send.png',restaurant:'screenshots/restaurant.png',restaurantBranches:'screenshots/restaurant-branches.png',english:'screenshots/menu-en.png',desktop:'screenshots/desktop.png',tablet:'screenshots/tablet.png',logo:'../../assets/branding/orb.png'};
+const timings=window.AD_TIMINGS={intro:0,menu:13,cart:19.1,checkout:22.5,restaurant:34,responsive:41.7,cta:52,end:62};
+const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
+const ease=v=>1-Math.pow(1-clamp(v),3);
+const smooth=v=>{v=clamp(v);return v*v*(3-2*v)};
+const lerp=(a,b,v)=>a+(b-a)*v;
+const local=(t,start,d=.65)=>ease((t-start)/d);
+const font=(size=52,weight=700)=>`${weight} ${size}px AdCairo, "Segoe UI", Tahoma, Arial, sans-serif`;
+function rr(x,y,w,h,r=24,fill=WHITE,stroke=null,lw=1){ctx.beginPath();ctx.roundRect(x,y,w,h,r);if(fill){ctx.fillStyle=fill;ctx.fill()}if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=lw;ctx.stroke()}}
+function text(s,x,y,size=52,color=K,weight=700,align='right',alpha=1){ctx.save();ctx.globalAlpha*=alpha;ctx.fillStyle=color;ctx.font=font(size,weight);ctx.textAlign=align;ctx.textBaseline='middle';ctx.direction=align==='left'?'ltr':'rtl';ctx.fillText(s,x,y);ctx.restore()}
+function reveal(s,x,y,size,color,weight,at,t,align='right',delay=0){const p=local(t,at+delay,.72);text(s,x,y+32*(1-p),size,color,weight,align,p)}
+function circle(x,y,r,color){ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fillStyle=color;ctx.fill()}
+function outlineCircle(x,y,r,color,alpha=.2,lw=2){ctx.save();ctx.globalAlpha*=alpha;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.strokeStyle=color;ctx.lineWidth=lw;ctx.stroke();ctx.restore()}
+function line(x1,y1,x2,y2,color=K,width=3){ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.strokeStyle=color;ctx.lineWidth=width;ctx.lineCap='round';ctx.stroke()}
+function pill(s,x,y,w,color=O,bg=WHITE,size=27,alpha=1){ctx.save();ctx.globalAlpha*=alpha;rr(x,y,w,61,30,bg);text(s,x+w/2,y+30,size,color,750,'center');ctx.restore()}
+function shadow(alpha=.14,blur=40,y=20){ctx.shadowColor=`rgba(0,0,0,${alpha})`;ctx.shadowBlur=blur;ctx.shadowOffsetY=y;ctx.shadowOffsetX=0}
+function cleanShadow(){ctx.shadowColor='transparent';ctx.shadowBlur=0;ctx.shadowOffsetY=0;ctx.shadowOffsetX=0}
+function drawImageFit(img,x,y,w,h,mode='contain',src=null){if(!img)return;let sx=src?src.x:0,sy=src?src.y:0,sw=src?src.w:img.width,sh=src?src.h:img.height;let k=mode==='cover'?Math.max(w/sw,h/sh):Math.min(w/sw,h/sh);ctx.drawImage(img,sx,sy,sw,sh,x+(w-sw*k)/2,y+(h-sh*k)/2,sw*k,sh*k)}
+const blendCanvas=document.createElement('canvas'),blendCtx=blendCanvas.getContext('2d');
+function blendImages(a,b,p){if(!b||p<=0)return a;if(!a||p>=1)return b;blendCanvas.width=a.width;blendCanvas.height=a.height;blendCtx.drawImage(a,0,0);blendCtx.globalAlpha=p;blendCtx.drawImage(b,0,0,a.width,a.height);blendCtx.globalAlpha=1;return blendCanvas}
+function coverBackground(color){ctx.fillStyle=color;ctx.fillRect(0,0,W,H)}
+function header(step,label,dark=false){const c=dark?WHITE:O;line(838,166,908,166,c,5);text('موقع مطعمك',818,164,32,dark?WHITE:K,800);if(step)text(step+' / '+label,104,164,26,dark?WHITE:K,700,'left')}
+function footer(dark=false){text('منيو واضح. طلب أسهل.',540,1690,30,dark?WHITE:K,650,'center')}
+function progress(t,dark=false){const stops=[13,19.1,22.5,34,41.7];for(let i=0;i<5;i++)rr(427+i*46,1760,32,5,3,t>=stops[i]?(dark?WHITE:O):(dark?'rgba(255,255,255,.25)':'rgba(255,116,0,.2)'))}
+function glyph(type,x,y,size,color=O){ctx.save();ctx.translate(x,y);ctx.scale(size/64,size/64);ctx.strokeStyle=color;ctx.fillStyle=color;ctx.lineWidth=3.6;ctx.lineJoin='round';ctx.lineCap='round';if(type==='cart'){ctx.beginPath();ctx.moveTo(7,9);ctx.lineTo(14,9);ctx.lineTo(20,43);ctx.lineTo(51,43);ctx.lineTo(58,20);ctx.lineTo(17,20);ctx.stroke();circle(25,54,3,color);circle(47,54,3,color)}else if(type==='pin'){ctx.beginPath();ctx.moveTo(32,60);ctx.bezierCurveTo(25,49,12,37,12,23);ctx.arc(32,23,20,Math.PI,0);ctx.bezierCurveTo(52,37,39,50,32,60);ctx.stroke();ctx.beginPath();ctx.arc(32,23,7,0,2*Math.PI);ctx.stroke()}else if(type==='check'){ctx.beginPath();ctx.moveTo(10,33);ctx.lineTo(25,47);ctx.lineTo(56,14);ctx.stroke()}else if(type==='phone'){rr(17,3,30,58,8,null,color,3);line(27,53,37,53,color,3)}else if(type==='whatsapp'){ctx.beginPath();ctx.arc(33,29,25,.65,5.15);ctx.stroke();ctx.beginPath();ctx.moveTo(9,44);ctx.lineTo(5,60);ctx.lineTo(22,55);ctx.stroke();ctx.beginPath();ctx.moveTo(24,17);ctx.bezierCurveTo(15,23,34,46,44,39);ctx.lineTo(47,33);ctx.lineTo(37,28);ctx.lineTo(33,33);ctx.bezierCurveTo(30,31,26,28,25,25);ctx.lineTo(29,21);ctx.closePath();ctx.stroke()}else if(type==='social'){for(let p of [[12,32],[50,11],[50,53]]){ctx.beginPath();ctx.arc(p[0],p[1],7,0,Math.PI*2);ctx.stroke()}line(19,28,43,14,color,3);line(19,36,43,50,color,3)}else if(type==='menu'){rr(11,6,42,52,6,null,color,3);line(22,20,43,20,color,3);line(22,32,43,32,color,3);line(22,44,35,44,color,3)}else if(type==='globe'){ctx.beginPath();ctx.arc(32,32,26,0,Math.PI*2);ctx.stroke();ctx.beginPath();ctx.ellipse(32,32,12,26,0,0,Math.PI*2);ctx.stroke();line(7,32,57,32,color,3);ctx.beginPath();ctx.ellipse(32,32,25,11,0,0,Math.PI*2);ctx.stroke()}ctx.restore()}
+function phone(asset,x,y,w=400,rotation=0,scale=1,opacity=1){const h=w*2.24;ctx.save();ctx.globalAlpha*=opacity;ctx.translate(x+w/2,y+h/2);ctx.rotate(rotation);ctx.scale(scale,scale);ctx.translate(-w/2,-h/2);shadow(.23,44,24);rr(0,0,w,h,w*.12,'#3E3E42');cleanShadow();rr(3,3,w-6,h-6,w*.114,'#0C0C0F');rr(7,7,w-14,h-14,w*.106,'#29292D', '#76767B',1.1);const b=13,sx=b,sy=b,sw=w-b*2,sh=h-b*2;rr(sx,sy,sw,sh,w*.093,WHITE);ctx.save();ctx.beginPath();ctx.roundRect(sx,sy,sw,sh,w*.093);ctx.clip();const status=50*w/400,home=22*w/400,appY=sy+status,appH=sh-status-home;drawImageFit(asset,sx,appY,sw,appH,'contain');text('9:41',sx+20*w/400,sy+26*w/400,13*w/400,K,750,'left');rr(w/2-49*w/400,sy+10*w/400,98*w/400,26*w/400,14*w/400,K);const bx=w-b-41*w/400,by=sy+21*w/400;rr(bx,by,22*w/400,11*w/400,3*w/400,null,K,1);rr(bx+2*w/400,by+2*w/400,17*w/400,7*w/400,1.4*w/400,K);line(bx+24*w/400,by+4*w/400,bx+24*w/400,by+7*w/400,K,1.7);for(let j=0;j<4;j++){rr(bx-23*w/400+j*4*w/400,by+(8-j*2)*w/400,2.6*w/400,(3+j*2)*w/400,1,K)}rr(w/2-55*w/400,h-14-9*w/400,110*w/400,4.5*w/400,3,K);ctx.restore();rr(-2,110*w/400,3,28*w/400,2,'#77777C');rr(-2,164*w/400,3,48*w/400,2,'#77777C');rr(w-1,166*w/400,3,76*w/400,2,'#77777C');ctx.restore();return h}
+function laptop(asset,x,y,w=1050){const h=w*.635;ctx.save();shadow(.16,32,22);rr(x,y,w,h,21,'#2B2B2F');cleanShadow();rr(x+5,y+5,w-10,h-10,18,'#0B0B0D');rr(x+18,y+20,w-36,h-42,5,WHITE);ctx.save();ctx.beginPath();ctx.roundRect(x+18,y+20,w-36,h-42,5);ctx.clip();drawImageFit(asset,x+18,y+20,w-36,h-42,'contain');ctx.restore();circle(x+w/2,y+9,2.5,'#67676E');ctx.fillStyle='#D2D2D7';ctx.beginPath();ctx.moveTo(x-46,y+h);ctx.lineTo(x+w+46,y+h);ctx.lineTo(x+w+79,y+h+26);ctx.quadraticCurveTo(x+w+68,y+h+37,x+w+35,y+h+39);ctx.lineTo(x-35,y+h+39);ctx.quadraticCurveTo(x-68,y+h+37,x-79,y+h+26);ctx.closePath();ctx.fill();rr(x+w*.405,y+h,w*.19,8,0,'#A6A6AC');ctx.restore()}
+function bubble(s,x,y,w,t,start,orange=false){const p=local(t,start,.6);if(p<=0)return;ctx.save();ctx.globalAlpha=p;ctx.translate(x+w/2,y+35);ctx.scale(.88+.12*p,.88+.12*p);ctx.translate(-w/2,-35);shadow(.08,20,9);rr(0,0,w,70,24,orange?O:WHITE,orange?null:'rgba(255,116,0,.24)',2);cleanShadow();text(s,w/2,36,28,orange?WHITE:K,750,'center');ctx.restore()}
+function centered(s,y,size=78,color=K,weight=900,opacity=1){text(s,520,y,size,color,weight,'center',opacity)}
+function heading(a,b,u,dark=false){const p=local(u,.1);centered(a,313+28*(1-p),78,dark?WHITE:K,900,p);const q=local(u,.3);centered(b,418+28*(1-q),80,dark?WHITE:O,950,q)}
+function phoneHero(img,u,dark=false){outlineCircle(521,1090,441,dark?WHITE:O,.12,2);const p=local(u,.1,.75);phone(img,307,603+60*(1-p)+Math.sin(u*.95)*5,424,-.015*Math.sin(u*.45),.97+.03*p,p)}
+function banner(s,y=1620,dark=false){pill(s,154,y,730,dark?O:WHITE,dark?WHITE:O,32)}
+function intro(t){
+  const solution=t>=8.2;coverBackground(solution?O:WHITE);header(null,null,solution);
+  if(!solution){
+    pill('لأصحاب المطاعم',330,239,380,O,'rgba(255,116,0,.10)',31);
+    if(t<4.1){centered('صاحب مطعم؟',389,106,K,950,1);centered('ولا طول اليوم بترد؟',518,74,O,900,local(t,.35));}
+    else{centered('نفس الأسئلة…',389,91,K,950,local(t,4.1,.4));centered('كل يوم؟',518,110,O,950,local(t,4.35,.4));}
+    const p=local(t,.1,.8);phone(assets.menu,313,673+60*(1-p)+Math.sin(t)*5,410,-.025,p*.04+.96,p);
+    bubble('المنيو فين؟',104,872,334,t,4.45);
+    bubble('بكام؟',629,1140,248,t,5.5,true);
+    bubble('نسجّل الأوردر إزاي؟',96,1406,431,t,6.4);
+    if(t<4.2)centered('طلباتك تستاهل طريقة أسهل.',1650,34,K,700,local(t,1.4));
+  }else{
+    const u=t-8.2;heading('خلّي موقعك','يرتّب الطلب.',u,true);
+    centered('وإنت ركّز في الطعم.',527,40,WHITE,700,local(u,.65));
+    phoneHero(assets.menu,u,true);banner('من أول اختيار… لحد رسالة واتساب',1620,true);
+  }
+}
+function menu(t){const u=t-13;coverBackground(WHITE);header('01','المنيو');heading('كل أطباقك.','في لينك واحد.',u);centered('صور • أسعار • أقسام مرتّبة',525,37,K,700,local(u,.8));phoneHero(assets.menu,u);banner('عميلك يشوف… ويختار براحته.');progress(t)}
+function cart(t){const u=t-19.1;coverBackground(O);header('02','السلة',true);heading('العميل يختار.','والأوردر يتنظّم.',u,true);centered('كميات واضحة. وإجمالي قدّامه.',525,35,WHITE,700,local(u,.5));phoneHero(assets.cart,u,true);banner('كل الطلب في سلة واحدة',1620,true);progress(t,true)}
+function checkout(t){const u=t-22.5;coverBackground(WHITE);header('03','الطلب');heading('من موقعك…','لواتساب مطعمك.',u);centered(t<27.5?'الاسم • الرقم • عنوان التوصيل':'الطلب وبيانات العميل… في رسالة واحدة',525,t<27.5?35:33,K,700,local(u,.65));phoneHero(blendImages(assets.checkout,assets.checkoutSend,smooth((t-27.5)/.65)),u);banner(t<27.5?'العميل يكتب بياناته ويراجع طلبه':'يفتح واتساب… ويضغط إرسال');progress(t)}
+function restaurant(t){const u=t-34;coverBackground(O);header('04','مطعمك',true);heading('مش بس منيو.','دي واجهة مطعمك.',u,true);centered('فروعك • عناوينك • حسابات السوشيال',525,32,WHITE,700,local(u,.65));phoneHero(blendImages(assets.restaurant,assets.restaurantBranches,smooth((t-38)/.65)),u,true);banner('كل طرق التواصل… في مكان واحد',1620,true);progress(t,true)}
+function responsive(t){const u=t-41.7;coverBackground(WHITE);header('05','كل الشاشات');
+ if(t<44.5){heading('بالعربي…','و English كمان.',u);centered('نفس التجربة. بلغتين.',525,38,K,700,local(u,.6));const p=local(u,.2);phone(assets.menu,111,724+40*(1-p),360,-.028,1,p);phone(assets.english,577,724+40*(1-p),360,.028,1,p);pill('العربية',141,615,300,WHITE,O,31);pill('English',607,615,300,WHITE,O,31);banner('خلّي عميلك يختار لغته.');
+ }else{const v=t-44.5;heading('على أي شاشة…','موقعك يظبط.',v);centered('موبايل • تابلت • كمبيوتر',525,38,K,700,local(v,.4));const p=local(v,.05);ctx.save();ctx.globalAlpha=p;laptop(assets.desktop,125,667+40*(1-p),790);ctx.restore();phone(assets.menu,567,987+35*(1-p),275,.025,1,p);ctx.save();ctx.globalAlpha=p;shadow(.16,25,12);rr(171,1122,365,472,27,'#151519');cleanShadow();rr(184,1135,339,446,17,WHITE);ctx.save();ctx.beginPath();ctx.roundRect(184,1135,339,446,17);ctx.clip();drawImageFit(assets.tablet,184,1135,339,446,'contain');ctx.restore();ctx.restore();banner('تصميم يليق بمطعمك.');}
+ progress(t)
+}
+function cta(t){const u=t-52;coverBackground(WHITE);ctx.fillStyle=O;ctx.fillRect(0,0,W,588);outlineCircle(524,339,345,WHITE,.2,2);outlineCircle(524,339,411,WHITE,.1,2);const p=local(u,0,.7);ctx.save();ctx.globalAlpha=p;shadow(.15,36,18);rr(252,284+35*(1-p),536,352,37,WHITE);cleanShadow();drawImageFit(assets.logo,283,310+35*(1-p),474,298,'contain',{x:27,y:258,w:1200,h:750});ctx.restore();centered('خلّي الطلب',815,96,K,950,local(u,.25));centered('أسهل لمطعمك.',937,92,O,950,local(u,.5));centered('تواصلوا معانا',1134,65,K,850,local(u,.8));const q=local(u,1);ctx.save();ctx.globalAlpha=q;rr(126,1231,792,125,27,WHITE,'rgba(255,116,0,.42)',2);text('01096506563',520,1294,70,K,850,'center');rr(126,1394,792,119,27,O);text('giftegy7@gmail.com',520,1454,43,WHITE,750,'center');ctx.restore();centered('منيو. سلة. طلبات على واتساب.',1645,34,K,700,local(u,1.3))}
+const scenes=[['intro',intro],['menu',menu],['cart',cart],['checkout',checkout],['restaurant',restaurant],['responsive',responsive],['cta',cta]];
+function renderFrame(seconds){const t=clamp(Number(seconds)||0,0,61.999);let ix=0;for(let i=0;i<scenes.length;i++)if(t>=timings[scenes[i][0]])ix=i;ctx.setTransform(1,0,0,1,0,0);ctx.globalAlpha=1;cleanShadow();scenes[ix][1](t);const elapsed=t-timings[scenes[ix][0]];if(ix>0&&elapsed<.35){const edge=H*smooth(elapsed/.35);ctx.save();ctx.beginPath();ctx.rect(0,edge,W,H-edge);ctx.clip();scenes[ix-1][1](timings[scenes[ix][0]]-.001);ctx.restore();ctx.fillStyle=ix%2?O:WHITE;ctx.fillRect(0,Math.max(0,edge-6),W,6)}window.lastFrameTime=t;return canvas}
+window.renderFrame=renderFrame;window.assetErrors=assetErrors;window.AD_DURATION=62;
+window.ready=Promise.all([document.fonts.load('800 80px AdCairo'),...Object.entries(files).map(([key,url])=>new Promise(resolve=>{const im=new Image();im.onload=()=>{assets[key]=im;resolve()};im.onerror=()=>{assetErrors.push(url);resolve()};im.src=url}))]).then(()=>{window.assets=assets;renderFrame(0);return {assetErrors}});
+if(new URLSearchParams(location.search).has('play'))window.ready.then(()=>{const audio=new Audio('voiceover.mp3');document.body.addEventListener('click',()=>audio.play(),{once:true});let start=null;function tick(now){if(start===null)start=now;renderFrame(((now-start)/1000)%62);requestAnimationFrame(tick)}requestAnimationFrame(tick)});
+})();
+
+</script></body></html>

@@ -15,8 +15,6 @@ import 'features/restaurant_info/presentation/cubit/restaurant_cubit.dart';
 import 'features/menu/presentation/cubit/menu_cubit.dart';
 import 'features/cart/presentation/cubit/cart_cubit.dart';
 import 'features/checkout/presentation/cubit/checkout_cubit.dart';
-import 'features/admin/presentation/cubit/admin_auth_cubit.dart';
-import 'features/admin/presentation/pages/settings_page.dart';
 import 'features/main_navigation/presentation/pages/main_navigation_shell.dart';
 
 const _startupStepTimeout = Duration(seconds: 12);
@@ -52,7 +50,12 @@ class _BootstrapAppState extends State<BootstrapApp> {
     try {
       await di.initDependencies().timeout(_dependencyStartupTimeout);
     } catch (e) {
-      debugPrint(ErrorMessages.withDetails(AppErrorKey.loadLocalStorage, e));
+      debugPrint(
+        ErrorMessages.withDetails(
+          AppErrorKey.loadLocalStorage,
+          e,
+        ),
+      );
       rethrow;
     }
   }
@@ -63,7 +66,12 @@ class _BootstrapAppState extends State<BootstrapApp> {
         options: DefaultFirebaseOptions.currentPlatform,
       ).timeout(_startupStepTimeout);
     } catch (e) {
-      debugPrint(ErrorMessages.withDetails(AppErrorKey.firebaseInitNotice, e));
+      debugPrint(
+        ErrorMessages.withDetails(
+          AppErrorKey.firebaseInitNotice,
+          e,
+        ),
+      );
     }
   }
 
@@ -74,7 +82,12 @@ class _BootstrapAppState extends State<BootstrapApp> {
         publishableKey: SupabaseConfig.supabaseAnonKey,
       ).timeout(_startupStepTimeout);
     } catch (e) {
-      debugPrint(ErrorMessages.withDetails(AppErrorKey.supabaseInitNotice, e));
+      debugPrint(
+        ErrorMessages.withDetails(
+          AppErrorKey.supabaseInitNotice,
+          e,
+        ),
+      );
     }
   }
 
@@ -98,11 +111,14 @@ class _BootstrapAppState extends State<BootstrapApp> {
           debugShowCheckedModeBanner: false,
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          localizationsDelegates:
+              AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           onGenerateRoute: (_) => MaterialPageRoute(
             builder: (_) => snapshot.hasError
-                ? _BootstrapErrorScreen(onRetry: _retryStartup)
+                ? _BootstrapErrorScreen(
+                    onRetry: _retryStartup,
+                  )
                 : const _BootstrapLoadingScreen(),
           ),
         );
@@ -119,13 +135,15 @@ class _BootstrapLoadingScreen extends StatefulWidget {
       _BootstrapLoadingScreenState();
 }
 
-class _BootstrapLoadingScreenState extends State<_BootstrapLoadingScreen>
+class _BootstrapLoadingScreenState
+    extends State<_BootstrapLoadingScreen>
     with SingleTickerProviderStateMixin {
   late final AnimationController _orbitController;
 
   @override
   void initState() {
     super.initState();
+
     _orbitController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1250),
@@ -153,7 +171,9 @@ class _BootstrapLoadingScreenState extends State<_BootstrapLoadingScreen>
               width: logoWidth,
               child: AspectRatio(
                 aspectRatio: 1672 / 941,
-                child: _OrbCodeSplashLogo(animation: _orbitController),
+                child: _OrbCodeSplashLogo(
+                  animation: _orbitController,
+                ),
               ),
             );
           },
@@ -166,7 +186,9 @@ class _BootstrapLoadingScreenState extends State<_BootstrapLoadingScreen>
 class _OrbCodeSplashLogo extends StatelessWidget {
   final Animation<double> animation;
 
-  const _OrbCodeSplashLogo({required this.animation});
+  const _OrbCodeSplashLogo({
+    required this.animation,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -214,7 +236,10 @@ class _OrbOrbitRing extends StatelessWidget {
           child: DecoratedBox(
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              border: Border.all(color: const Color(0x40FFFFFF), width: 2),
+              border: Border.all(
+                color: const Color(0x40FFFFFF),
+                width: 2,
+              ),
               boxShadow: const [
                 BoxShadow(
                   color: Color(0x334FC3FF),
@@ -251,7 +276,9 @@ class _OrbOrbitRing extends StatelessWidget {
 class _BootstrapErrorScreen extends StatelessWidget {
   final VoidCallback onRetry;
 
-  const _BootstrapErrorScreen({required this.onRetry});
+  const _BootstrapErrorScreen({
+    required this.onRetry,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -264,10 +291,13 @@ class _BootstrapErrorScreen extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.error_outline_rounded, size: 54),
+              const Icon(
+                Icons.error_outline_rounded,
+                size: 54,
+              ),
               const SizedBox(height: 16),
               Text(
-                l10n.startupFailed ,
+                l10n.startupFailed,
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.titleMedium,
               ),
@@ -288,40 +318,29 @@ class _BootstrapErrorScreen extends StatelessWidget {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  static bool _isLoginValue(String? value) {
-    final cleanValue = (value ?? '').trim().toLowerCase();
-    return cleanValue == '/login' ||
-        cleanValue == '/login/' ||
-        cleanValue == 'login' ||
-        cleanValue == '#/login' ||
-        cleanValue.endsWith('/login');
-  }
-
-  static bool _isLoginLocation() {
-    final uri = Uri.base;
-    return _isLoginValue(uri.path) || _isLoginValue(uri.fragment);
-  }
-
   @override
   Widget build(BuildContext context) {
-    final isLogin = _isLoginLocation();
-
     return MultiBlocProvider(
       providers: [
         BlocProvider<ThemeCubit>(
-          create: (_) => di.sl<ThemeCubit>()..restorePreferences(),
+          create: (_) =>
+              di.sl<ThemeCubit>()..restorePreferences(),
         ),
         BlocProvider<RestaurantCubit>(
-          create: (_) => di.sl<RestaurantCubit>()..loadRestaurantInfo(),
+          create: (_) =>
+              di.sl<RestaurantCubit>()..loadRestaurantInfo(),
         ),
         BlocProvider<MenuCubit>(
-          create: (_) => di.sl<MenuCubit>()..loadMenuData(),
+          create: (_) =>
+              di.sl<MenuCubit>()..loadMenuData(),
         ),
         BlocProvider<CartCubit>(
-          create: (_) => di.sl<CartCubit>()..restoreCart(),
+          create: (_) =>
+              di.sl<CartCubit>()..restoreCart(),
         ),
         BlocProvider<CheckoutCubit>(
-          create: (_) => di.sl<CheckoutCubit>()..restoreSavedCustomerInfo(),
+          create: (_) =>
+              di.sl<CheckoutCubit>()..restoreSavedCustomerInfo(),
         ),
       ],
       child: BlocBuilder<ThemeCubit, ThemeState>(
@@ -330,16 +349,20 @@ class MyApp extends StatelessWidget {
             onGenerateTitle: (context) =>
                 AppLocalizations.of(context)!.appTitle,
             debugShowCheckedModeBanner: false,
+
             theme: AppTheme.lightTheme,
             darkTheme: AppTheme.darkTheme,
+
             themeMode: themeState.themeMode,
             locale: themeState.locale,
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            initialRoute: isLogin ? '/login' : '/',
-            onGenerateInitialRoutes: (_) => [
-              _generateRoute(RouteSettings(name: isLogin ? '/login' : '/')),
-            ],
+
+            localizationsDelegates:
+                AppLocalizations.localizationsDelegates,
+            supportedLocales:
+                AppLocalizations.supportedLocales,
+
+            home: const MainNavigationShell(),
+
             builder: (context, child) {
               return Directionality(
                 textDirection: themeState.isArabic
@@ -348,27 +371,9 @@ class MyApp extends StatelessWidget {
                 child: child!,
               );
             },
-            onGenerateRoute: _generateRoute,
           );
         },
       ),
-    );
-  }
-
-  Route<dynamic> _generateRoute(RouteSettings settings) {
-    if (_isLoginValue(settings.name)) {
-      return MaterialPageRoute(
-        settings: settings,
-        builder: (_) => BlocProvider<AdminAuthCubit>(
-          create: (_) => di.sl<AdminAuthCubit>(),
-          child: const SettingsPage(),
-        ),
-      );
-    }
-
-    return MaterialPageRoute(
-      settings: settings,
-      builder: (_) => const MainNavigationShell(),
     );
   }
 }

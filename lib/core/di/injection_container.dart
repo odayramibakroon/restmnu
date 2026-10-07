@@ -1,7 +1,6 @@
 import 'package:get_it/get_it.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+ import 'package:shared_preferences/shared_preferences.dart';
 import '../services/location_service.dart';
 import '../services/whatsapp_service.dart';
 import '../services/url_launcher_service.dart';
@@ -22,10 +21,7 @@ import '../../features/menu/presentation/cubit/menu_cubit.dart';
 import '../../features/cart/presentation/cubit/cart_cubit.dart';
 
 import '../../features/checkout/presentation/cubit/checkout_cubit.dart';
-import '../../features/admin/data/admin_repository.dart';
-import '../../features/admin/presentation/cubit/admin_auth_cubit.dart';
-import '../../features/admin/presentation/cubit/admin_dashboard_cubit.dart';
-
+ 
 final sl = GetIt.instance;
 
 Future<void> initDependencies() async {
@@ -37,7 +33,6 @@ Future<void> initDependencies() async {
   _registerLazySingletonIfAbsent<FirebaseFirestore>(
     () => FirebaseFirestore.instance,
   );
-  _registerLazySingletonIfAbsent<FirebaseAuth>(() => FirebaseAuth.instance);
   _registerLazySingletonIfAbsent<SharedPreferences>(() => sharedPreferences);
 
   // Core Services
@@ -92,17 +87,7 @@ Future<void> initDependencies() async {
     () => ThemeCubit(localStorage: sl()),
   );
 
-  // Admin Feature
-  _registerLazySingletonIfAbsent<AdminRepository>(
-    () =>
-        AdminRepository(auth: sl(), firestore: sl(), imageStorageService: sl()),
-  );
-  _registerFactoryIfAbsent<AdminAuthCubit>(
-    () => AdminAuthCubit(repository: sl()),
-  );
-  _registerFactoryIfAbsent<AdminDashboardCubit>(
-    () => AdminDashboardCubit(repository: sl()),
-  );
+ 
 }
 
 void _registerLazySingletonIfAbsent<T extends Object>(T Function() factory) {
