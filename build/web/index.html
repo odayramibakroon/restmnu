@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <!--
+    If you are serving your web app in a path other than the root, change the
+    href value below to reflect the base path you are serving from.
+
+    The path provided below has to start and end with a slash "/" in order for
+    it to work correctly.
+
+    For more details:
+    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
+
+    This is a placeholder for base href that will be replaced by the value of
+    the `--base-href` argument provided to `flutter build`.
+  -->
+  <base href="/">
+
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="description" content="ORB CODE smart software solutions.">
+
+  <!-- iOS meta tags & icons -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="ORB CODE">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" sizes="64x64" href="favicon.png">
+
+  <title>ORB CODE</title>
+  <link rel="manifest" href="manifest.json">
+  <style>
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      background: #fffaf5;
+    }
+
+    #app-loader {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 50% 48%, rgba(31, 129, 189, 0.16), transparent 38%),
+        radial-gradient(circle at 50% 68%, rgba(255, 255, 255, 0.08), transparent 26%),
+        #02040a;
+      z-index: 9999;
+      transition: opacity 0.25s ease;
+    }
+
+    #app-loader-stack {
+      position: relative;
+      width: min(34vw, 220px);
+      aspect-ratio: 1672 / 941;
+      display: grid;
+      place-items: center;
+      transform-origin: center;
+    }
+
+    #app-loader-logo {
+      width: 100%;
+      height: auto;
+      filter: drop-shadow(0 28px 40px rgba(0, 0, 0, 0.54));
+    }
+
+    #app-loader-orbit {
+      position: absolute;
+      left: 2%;
+      top: 1.5%;
+      width: 42%;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, 0.18);
+      border-top-color: #ffffff;
+      border-right-color: #4fc3ff;
+      animation: app-loader-spin 1.2s linear infinite;
+      box-shadow: 0 0 24px rgba(79, 195, 255, 0.18);
+    }
+
+    #app-loader-orbit::after {
+      content: "";
+      position: absolute;
+      right: 9%;
+      top: 9%;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #f8fbff;
+      box-shadow: 0 0 18px rgba(79, 195, 255, 0.9);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      html,
+      body,
+      #app-loader {
+        background: #121212;
+      }
+
+      #app-loader {
+        background:
+          radial-gradient(circle at 50% 48%, rgba(31, 129, 189, 0.16), transparent 38%),
+          #02040a;
+      }
+    }
+
+    #app-loader.app-loader-handoff {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    @keyframes app-loader-spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="app-loader" aria-hidden="true">
+    <div id="app-loader-stack">
+      <img id="app-loader-logo" src="icons/orb-code-logo.png" alt="">
+      <div id="app-loader-orbit"></div>
+    </div>
+  </div>
+  <script>
+    window.addEventListener('flutter-first-frame', function () {
+      var loader = document.getElementById('app-loader');
+      if (loader) {
+        loader.classList.add('app-loader-handoff');
+        window.setTimeout(function () {
+          loader.remove();
+        }, 260);
+      }
+    });
+  </script>
+  <script src="flutter_bootstrap.js" async></script>
+</body>
+</html>
